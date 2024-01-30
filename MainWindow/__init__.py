@@ -18,6 +18,8 @@ class MainWindow(QMainWindow):
         if self._console is not None:
             self._console.terminate()
         self._kernel.shell.run_cell("quit()")
+        self._kernel.cleanup_connection_file()
+        self._kernel = None
         super().closeEvent(event)
 
     def start_qt_console(self):
