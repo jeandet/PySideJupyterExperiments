@@ -1,4 +1,3 @@
-from PySide6.QtCore import QObject
 from PySide6.QtWidgets import QMainWindow, QPushButton
 
 from QtConsoleSpawner import new_qt_console

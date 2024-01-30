@@ -1,4 +1,3 @@
-from PySide6.QtCore import QObject, Signal, Slot, QProcess
 import jupyter_client
 import subprocess
 import os, sys
