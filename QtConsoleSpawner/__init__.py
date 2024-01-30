@@ -28,7 +28,7 @@ def new_qt_console(kernel):
     python_executable = get_python_executable()
     print(f"Starting QtConsole with {python_executable} {' '.join(args)}")
     env = os.environ.copy()
-    env["PYTHONPATH"] = ":".join(sys.path)
+    env["PYTHONPATH"] = os.pathsep.join(sys.path)
     process = subprocess.Popen([python_executable] + args, env=env)
     print(f"Started QtConsole with PID {process.pid}, connection file {connection_file}")
     return process
