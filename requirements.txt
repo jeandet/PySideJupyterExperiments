@@ -1,0 +1,5 @@
+PySide6
+qtconsole
+IPython
+ipykernel
+qasync
