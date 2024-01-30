@@ -12,10 +12,10 @@ from QtConsoleSpawner import new_qt_console
 def main():
     app = QApplication([])
     kernel = IPKernelApp.instance(kernel_name="SciQLop")
+    kernel.initialize(["python", "--matplotlib=qt"])
     window = MainWindow(kernel)
     window.show()
 
-    kernel.initialize(["python", "--matplotlib=qt"])
     print("IPython kernel initialized")
     kernel.start()
 
