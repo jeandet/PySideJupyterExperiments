@@ -1,4 +1,4 @@
-from qasync import QEventLoop, QApplication
+from qasync import QEventLoop, QApplication, asyncSlot
 from PySide6.QtCore import QTimer
 from typing import Optional
 import asyncio
@@ -7,8 +7,6 @@ from MainWindow import MainWindow
 import sys
 
 from ipykernel.kernelapp import IPKernelApp
-from ipykernel.ipkernel import IPythonKernel
-from ipykernel.eventloops import register_integration, enable_gui
 
 event_loop: Optional[QEventLoop] = None
 app: Optional[QApplication] = None
@@ -29,13 +27,27 @@ def get_event_loop() -> QEventLoop:
     return event_loop
 
 
-@register_integration('my_loop')
-def loop_sciqlop(kernel: IPythonKernel):
-    """Start the SciQLop event loop."""
-    timer = QTimer()
-    timer.timeout.connect(kernel.do_one_iteration)
-    timer.start(int(kernel._poll_interval))
-    get_event_loop().exec()
+class MyKernelApp(IPKernelApp):
+    def start(self):
+        """Start the application."""
+        if self.subapp is not None:
+            return self.subapp.start()
+        if self.poller is not None:
+            self.poller.start()
+        self.kernel.start()
+        app = get_app()
+        app_close_event = asyncio.Event()
+        app.aboutToQuit.connect(app_close_event.set)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.do_one_iteration)
+        self.timer.start(int(1000 * self.kernel._poll_interval))
+        event_loop = get_event_loop()
+        with event_loop:
+            event_loop.run_until_complete(app_close_event.wait())
+
+    @asyncSlot()
+    async def do_one_iteration(self):
+        await self.kernel.do_one_iteration()
 
 
 def main():
@@ -43,9 +55,7 @@ def main():
     app = get_app()
     app_close_event = asyncio.Event()
     app.aboutToQuit.connect(app_close_event.set)
-    kernel_app = IPKernelApp.instance(kernel_name="MyKernel")
-    kernel_app.eventloop = None
-    enable_gui('my_loop', kernel=kernel_app)
+    kernel_app = MyKernelApp.instance(kernel_name="MyKernel")
     kernel_app.initialize()
     main_window = MainWindow(kernel=kernel_app)
     main_window.show()
